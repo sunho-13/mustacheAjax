@@ -15,20 +15,15 @@ public class CategoryWebController {
     @Autowired
     private CategoryServiceImpl categoryService;
 
-    @GetMapping("")
-    public String indexHome() {
-        return "index"; // resources/templates/* 에서부터 index[.html] 찾는다.
-    }
-
     @GetMapping("/oldhtml/category_old")    // 브라우저의 URL 주소
-    public String categoryOld(Model model, @RequestParam String name, @RequestParam int page) {
+    public String categoryOld(Model model, @RequestParam String searchName, @RequestParam int page) {
         try {
-            if (name == null) {
-                name = "";
+            if (searchName == null) {
+                searchName = "";
             }
 //            List<ICategory> allList = this.categoryService.getAllList();
             SearchCategoryDto searchCategoryDto = SearchCategoryDto.builder()
-                    .name(name).page(page).build();
+                    .searchName(searchName).page(page).build();
             int total = this.categoryService.countAllByNameContains(searchCategoryDto);
             searchCategoryDto.setTotal(total);
             List<ICategory> allList = this.categoryService.findAllByNameContains(searchCategoryDto);
@@ -51,7 +46,7 @@ public class CategoryWebController {
         sResult.append("<div>");
         for ( int i = 0; i < tPage; i++ ) {
             sResult.append(" <a href='category_old?page=" + (i+1) +
-                    "&name=" + searchCategoryDto.getName() + "'>");
+                    "&searchName=" + searchCategoryDto.getSearchName() + "'>");
             sResult.append(i+1);
             sResult.append("</a> ");
         }

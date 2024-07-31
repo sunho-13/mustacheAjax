@@ -17,23 +17,23 @@
             let page = {{searchCategoryDto.page}};
             let startPage = getStartPage(page);
             let endPage = getEndPage(startPage);
-            let searchName = "{{searchCategoryDto.name}}";
+            let searchName = "{{searchCategoryDto.searchName}}";
             let sClass = "btn btn-success rounded-pill";
             let prev = (page-1) < 1 ? 1 : page-1;
             let next = (page+1) >= totPage ? totPage : page+1;
 
             $("#pageDiv").append(" <a class='" + sClass + "' href='category_list?page=" + prev +
-                "&name=" + searchName + "'>Prev</a> ");
+                "&searchName=" + searchName + "'>Prev</a> ");
             for (let i = startPage; i <= endPage; i++) {
                 if (page == i) {
                     sClass = "btn btn-primary rounded-pill";
                 }
                 $("#pageDiv").append(" <a class='" + sClass + "' href='category_list?page=" + i +
-                    "&name=" + searchName + "'>" + i + "</a> ");
+                    "&searchName=" + searchName + "'>" + i + "</a> ");
                 sClass = "btn btn-success rounded-pill";
             }
             $("#pageDiv").append(" <a class='" + sClass + "' href='category_list?page=" + next +
-                "&name=" + searchName + "'>Next</a> ");
+                "&searchName=" + searchName + "'>Next</a> ");
         });
 
         function getStartPage(page) {
@@ -64,7 +64,7 @@
 <body>
 <form action="category_list" method="get">
     <span>검색이름</span>
-    <input type="text" id="name" name="name" value="{{searchCategoryDto.name}}"/>
+    <input type="text" id="searchName" name="searchName" value="{{searchCategoryDto.searchName}}"/>
     <input type="hidden" id="page" name="page" value="{{searchCategoryDto.page}}" />
     <input type="submit" value="검색"/>
 </form>

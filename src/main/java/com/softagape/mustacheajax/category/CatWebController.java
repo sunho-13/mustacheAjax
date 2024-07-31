@@ -16,10 +16,10 @@ public class CatWebController {
     private CategoryServiceImpl categoryService;
 
     @GetMapping("/category_list")
-    public String categoryList(Model model, @RequestParam int page, @RequestParam String name) {
+    public String categoryList(Model model, @RequestParam int page, @RequestParam String searchName) {
         try {
             SearchCategoryDto searchCategoryDto = SearchCategoryDto.builder()
-                    .page(page).name(name).build();
+                    .page(page).searchName(searchName).build();
             int total = this.categoryService.countAllByNameContains(searchCategoryDto);
             List<ICategory> list = this.categoryService.findAllByNameContains(searchCategoryDto);
             searchCategoryDto.setTotal(total);
@@ -48,7 +48,7 @@ public class CatWebController {
         } catch (Exception ex) {
             log.error(ex.toString());
         }
-        return "redirect:category_list?page=1&name=";
+        return "redirect:category_list?page=1&searchName=";
     }
 
     @GetMapping("/category_view")
@@ -69,7 +69,7 @@ public class CatWebController {
         } catch (Exception ex) {
             log.error(ex.toString());
         }
-        return "redirect:category_list?page=1&name=";
+        return "redirect:category_list?page=1&searchName=";
     }
 
     @GetMapping("/category_delete")
@@ -79,6 +79,6 @@ public class CatWebController {
         } catch (Exception ex) {
             log.error(ex.toString());
         }
-        return "redirect:category_list?page=1&name=";
+        return "redirect:category_list?page=1&searchName=";
     }
 }
