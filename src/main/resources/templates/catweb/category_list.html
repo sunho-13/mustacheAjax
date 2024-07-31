@@ -59,18 +59,42 @@
             }
             return ~~(totPage);
         }
+
     </script>
+
+    <style>
+
+        body {
+
+
+        }
+
+        #main_header {
+            height: 60px;
+            line-height: 60px;
+            padding-left: 10px;
+            border-bottom: 1px solid black;
+
+            background: darkslategray;
+            color: white;
+        }
+    </style>
 </head>
 <body>
+<header id="main_header">
+    <h1>Category</h1>
+</header>
 <form action="category_list" method="get">
     <span>검색이름</span>
     <input type="text" id="searchName" name="searchName" value="{{searchCategoryDto.searchName}}"/>
     <input type="hidden" id="page" name="page" value="{{searchCategoryDto.page}}" />
     <input type="submit" value="검색"/>
 </form>
+
 <div>
     Category List
 </div>
+<section>
 <ul id="categoryList">
     <li>
         <span>id</span>
@@ -87,9 +111,12 @@
     </li>
     {{/categoryList}}
 </ul>
+</section>
+<footer>
 <div>total : {{searchCategoryDto.total}}</div>
 <div><a href="category_add"><button>추가</button></a></div>
 <div id="pageDiv">
 </div>
+</footer>
 </body>
 </html>
