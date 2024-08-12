@@ -1,4 +1,4 @@
-package com.softagape.mustacheajax.category;
+package com.softagape.mustacheajax.commons.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SearchCategoryDto {
+public class SearchAjaxDto {
     private String orderByWord;
     private String searchName;
     private String sortColumn;
