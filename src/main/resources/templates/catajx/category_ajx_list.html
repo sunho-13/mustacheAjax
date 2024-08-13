@@ -99,12 +99,16 @@
             $("#updateButton").click(function () {
                 // id="updateButton" 요소의 마우스 클릭 이벤트발생 시 실행한다.
                 $.update();
-            })
+            });
 
             $("#deleteButton").click(function () {
                 // id="deleteButton" 요소의 마우스 클릭 이벤트발생 시 실행한다.
                 $.delete();
-            })
+            });
+
+            $("#likeButton").click(function () {
+                $.likeBoard();
+            });
 
             $("#searchName").on("keyup", function (key) {
                 // id="searchName" 요소의 키보드 업 이벤트발생 시 실행한다.

@@ -162,6 +162,30 @@
             $.searchBoardList(page);
         }
 
+        $.createDtAsc = () => {
+            sortColumn = "name";
+            sortAscDesc = "DESC";
+            $.searchBoardList(page);
+        }
+
+        $.createDtDesc = () => {
+            sortColumn = "name";
+            sortAscDesc = "DESC"
+            $.searchBoardList(page);
+        }
+
+        $.createIdAsc = () => {
+            sortColumn = "date";
+            sortAscDesc = "DESC";
+            $.searchBoardList(page);
+        }
+
+        $.createIdDesc = () => {
+            sortColumn = "nick";
+            sortAscDesc = "DESC";
+            $.searchBoardList(page);
+        }
+
         $.searchBoardList = function (pPage) {
             page = pPage;
             $("#id").val("");   // id="id" 요소의 value 속성의 값을 "" 설정한다.
@@ -217,9 +241,17 @@
                 let id = boardList[i].id;
                 let name = boardList[i].name;
                 let content = boardList[i].content;
-                let strLi = "<li><div onClick='$.viewBoard(" + id + ");' class='itemRow'><span>"
-                    + id + "</span><span> : </span><span>"
-                    + name + "</span></div></li>";
+                let createDt = boardList[i].createDt;
+                let createId = boardList[i].createId;
+                let viewQty = boardList[i].viewQty;
+                let likeQty = boardList[i].likeQty;
+                let strLi = "<li><div onClick='$.viewBoard(" + id + ");' class='row'>"
+                    + "<span class='col-md-7 d-flex justify-content-start'>" + name + "</span>"
+                    + "<span class='col-md-2 d-flex justify-content-center'>" + createDt + "</span>"
+                    + "<span class='col-md-1 d-flex justify-content-start'>" + createId + "</span>"
+                    + "<span class='col-md-1 d-flex justify-content-end'>" + viewQty + "</span>"
+                    + "<span class='col-md-1 d-flex justify-content-end'>" + likeQty + "</span>"
+                    + "</div></li>";
                 list.append(strLi);
                 // boardList 배열의 요소들의 id 와 name 값을 이용하여
                 // <li><div><span>...</span>..</div></li> html 요소를 만드는
@@ -255,6 +287,9 @@
             // id="id" 요소의 value 속성의 값을 item.id 로 설정한다.
             $("#name2").val(item.name);
             $("#content2").val(item.content);
+            $("#showViewModalButton").trigger("click");
+            $("#")
+
         }
 
         $.makePageUI = function (paramTotal, paramPage) {
@@ -306,7 +341,7 @@
 
         $.addInsert = function () {
             let name = $("#name").val();
-            let content = $("#content2").val();
+            let content = $("#content").val();
             if (!confirm(name + " 추가 하시겠습니까 ?")) {
                 return;
             }
@@ -415,6 +450,26 @@
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
             });
         }
+
+        $.likeBoard = function () {
+            let id = $("#id2").val();
+            if (id <= 0) {
+                return;
+            }
+            $.ajax({
+                url: "/api/v1/board/like/" + id,
+                type: "GET",
+                datatype: "JSON",
+                contentType: "application/json; charset=UTF-8", // 응답받는 데이터 형식
+            }).done(function (data, status, xhr) {
+                console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
+                if (status === "success") {
+                }
+            }).fail(function (jqXHR, status, errorThrown) {
+                console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
+                alert("like 실패했습니다..");
+            });
+        }
     </script>
 </head>
 <body>
@@ -431,14 +486,19 @@
             </div>
             <ul>
                 <li>
-                    <span>id
-                        <button onclick="$.idAsc();">△</button>
-                        <button onclick="$.idDesc();">▽</button>
-                    </span>
-                    <span> : </span>
                     <span>name
                         <button onclick="$.nameAsc();">△</button>
                         <button onclick="$.nameDesc();">▽</button>
+                    </span>
+                    <span> : </span>
+                    <span>date
+                        <button onclick="$.createDtAsc();">△</button>
+                        <button onclick="$.createDtDesc();">▽</button>
+                    </span>
+                    <span> : </span>
+                    <span>nickname
+                        <button onclick="$.createIdAsc();">△</button>
+                        <button onclick="$.createIdDesc();">▽</button>
                     </span>
                     <span> : </span>
                     <span>
@@ -484,13 +544,16 @@
                 <label for="content2">Name</label> <textarea id="content2" name="content2"></textarea>
             </fieldset>
             <div class="row">
-                <div class="col-4">
+                <div class="col-3">
                     <button id="updateButton">수정</button>
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <button id="deleteButton">삭제</button>
                 </div>
-                <div class="col-4">
+                <div class="col-3">
+                    <button id="likeButton">좋아요</button>
+                </div>
+                <div class="col-3">
                     <button class="modalCloseButton">Close</button>
                 </div>
             </div>

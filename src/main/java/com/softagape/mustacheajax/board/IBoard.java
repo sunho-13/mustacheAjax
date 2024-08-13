@@ -2,7 +2,6 @@ package com.softagape.mustacheajax.board;
 
 import com.softagape.mustacheajax.commons.dto.IBase;
 
-
 public interface IBoard extends IBase {
     Long getId();
     void setId(Long id);
@@ -22,8 +21,7 @@ public interface IBoard extends IBase {
     String getDelFlag();
     void setDelFlag(String delFlag);
 
-    default void copyFields(IBoard from){
-
+    default void copyFields(IBoard from) {
         if (from == null) {
             return;
         }
@@ -33,23 +31,18 @@ public interface IBoard extends IBase {
         if (from.getName() != null && !from.getName().isEmpty()) {
             this.setName(from.getName());
         }
-
-        if(getContent() != null){
+        if (from.getContent() != null && !from.getContent().isEmpty()) {
             this.setContent(from.getContent());
         }
-
-        if(getViewQty() != null){
+        if (from.getViewQty() != null) {
             this.setViewQty(from.getViewQty());
         }
-
-        if(getLikeQty() != null){
+        if (from.getLikeQty() != null) {
             this.setLikeQty(from.getLikeQty());
         }
-
-        if(getDelFlag() != null){
+        if (from.getDelFlag() != null && !from.getDelFlag().isEmpty()) {
             this.setDelFlag(from.getDelFlag());
         }
-    IBase.super.copyFields(from);
-
+        IBase.super.copyFields(from);
     }
 }

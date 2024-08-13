@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class BoardServicceImpl implements IBoardService{
+public class BoardServiceImpl implements IBoardService {
     @Autowired
     private IBoardMybatisMapper boardMybatisMapper;
 
     @Override
     public void addViewQty(Long id) {
-        if(id ==null || id<=0){
+        if ( id == null || id <= 0 ) {
             return;
         }
         this.boardMybatisMapper.addViewQty(id);
@@ -22,16 +22,15 @@ public class BoardServicceImpl implements IBoardService{
 
     @Override
     public void addLikeQty(Long id) {
-        if(id ==null || id<=0){
+        if ( id == null || id <= 0 ) {
             return;
         }
         this.boardMybatisMapper.addLikeQty(id);
-
     }
 
     @Override
     public Integer countAllByNameContains(SearchAjaxDto searchAjaxDto) {
-        if(searchAjaxDto ==null){
+        if ( searchAjaxDto == null ) {
             return 0;
         }
         Integer count = this.boardMybatisMapper.countAllByNameContains(searchAjaxDto);
@@ -40,24 +39,31 @@ public class BoardServicceImpl implements IBoardService{
 
     @Override
     public List<BoardDto> findAllByNameContains(SearchAjaxDto searchAjaxDto) {
-        if(searchAjaxDto ==null){
+        if ( searchAjaxDto == null ) {
             return List.of();
+        }
+        searchAjaxDto.setOrderByWord( (searchAjaxDto.getSortColumn() != null ? searchAjaxDto.getSortColumn() : "id")
+                + " " + (searchAjaxDto.getSortAscDsc() != null ? searchAjaxDto.getSortAscDsc() : "DESC") );
+        // SQL select 문장의 ORDER BY 구문을 만들어 주는 역할
+        if ( searchAjaxDto.getRowsOnePage() == null ) {
+            // 한 페이지당 보여주는 행의 갯수
+            searchAjaxDto.setRowsOnePage(10);
         }
         List<BoardDto> list = this.boardMybatisMapper.findAllByNameContains(searchAjaxDto);
         return list;
     }
 
-    private List<IBoard> getInterfaceList(List<BoardDto> list){
-        if(list == null){
+    private List<IBoard> getInterfaceList(List<BoardDto> list) {
+        if( list == null ) {
             return List.of();
         }
-        List<IBoard> result =  list.stream().map(item->(IBoard)item).toList();
+        List<IBoard> result = list.stream().map(item -> (IBoard)item).toList();
         return result;
     }
 
     @Override
     public BoardDto insert(CUDInfoDto info, BoardDto dto) {
-        if(info==null||dto==null){
+        if ( info == null || dto == null ) {
             return null;
         }
         BoardDto insert = BoardDto.builder().build();
@@ -65,12 +71,11 @@ public class BoardServicceImpl implements IBoardService{
         info.setCreateInfo(insert);
         this.boardMybatisMapper.insert(insert);
         return insert;
-
     }
 
     @Override
     public BoardDto update(CUDInfoDto info, BoardDto dto) {
-        if(info==null||dto==null){
+        if ( info == null || dto == null ) {
             return null;
         }
         BoardDto update = BoardDto.builder().build();
@@ -82,7 +87,7 @@ public class BoardServicceImpl implements IBoardService{
 
     @Override
     public Boolean deleteFlag(CUDInfoDto info, BoardDto dto) {
-        if(info==null||dto==null){
+        if ( info == null || dto == null ) {
             return false;
         }
         BoardDto delete = BoardDto.builder().build();
@@ -90,12 +95,11 @@ public class BoardServicceImpl implements IBoardService{
         info.setDeleteInfo(delete);
         this.boardMybatisMapper.deleteFlag(delete);
         return true;
-
     }
 
     @Override
     public Boolean deleteById(Long id) {
-        if(id ==null || id<=0){
+        if ( id == null || id <= 0 ) {
             return false;
         }
         this.boardMybatisMapper.deleteById(id);
@@ -104,7 +108,7 @@ public class BoardServicceImpl implements IBoardService{
 
     @Override
     public BoardDto findById(Long id) {
-        if(id ==null || id<=0){
+        if ( id == null || id <= 0 ) {
             return null;
         }
         BoardDto find = this.boardMybatisMapper.findById(id);
