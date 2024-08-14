@@ -1,5 +1,7 @@
 package com.softagape.mustacheajax.board;
 
+import com.softagape.mustacheajax.boardlike.BoardLikeDto;
+import com.softagape.mustacheajax.boardlike.IBoardLikeService;
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.commons.dto.SearchAjaxDto;
 import com.softagape.mustacheajax.member.IMember;
@@ -19,6 +21,9 @@ import java.util.List;
 public class BoardApiController {
     @Autowired
     private IBoardService boardService;
+
+    @Autowired
+    private IBoardLikeService boardLikeService;
 
     @PostMapping
     public ResponseEntity<IBoard> insert(Model model, @RequestBody BoardDto dto) {
@@ -105,15 +110,19 @@ public class BoardApiController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IBoard> findById(@PathVariable Long id) {
+    public ResponseEntity<IBoard> findById(Model model, @PathVariable Long id) {
         try {
             if ( id == null || id <= 0 ) {
                 return ResponseEntity.badRequest().build();
             }
-            IBoard result = this.boardService.findById(id);
-            boardService.addViewQty(id);
+            IMember loginUser = (IMember)model.getAttribute("loginUser");
+            if ( loginUser == null ) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            this.boardService.addViewQty(id);
+            IBoard result = this.getBoardAndLike(id, loginUser);
             if ( result == null ) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.badRequest().build();
             }
             return ResponseEntity.ok(result);
         } catch ( Exception ex ) {
@@ -165,16 +174,63 @@ public class BoardApiController {
     }
 
     @GetMapping("/like/{id}")
-    public ResponseEntity<String> addLikeQty(@PathVariable Long id) {
+    public ResponseEntity<IBoard> addLikeQty(Model model, @PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
+            IMember loginUser = (IMember)model.getAttribute("loginUser");
+            if ( loginUser == null ) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            if ( id == null || id <= 0 ) {
                 return ResponseEntity.badRequest().build();
             }
-            this.boardService.addLikeQty(id);
-            return ResponseEntity.ok("OK");
-        } catch (Exception ex) {
+            CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
+            this.boardService.addLikeQty(cudInfoDto, id);
+            IBoard result = this.getBoardAndLike(id, loginUser);
+            if ( result == null ) {
+                return ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(result);
+        } catch ( Exception ex ) {
             log.error(ex.toString());
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping("/unlike/{id}")
+    public ResponseEntity<IBoard> subLikeQty(Model model, @PathVariable Long id) {
+        try {
+            IMember loginUser = (IMember)model.getAttribute("loginUser");
+            if ( loginUser == null ) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            if ( id == null || id <= 0 ) {
+                return ResponseEntity.badRequest().build();
+            }
+            CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
+            this.boardService.subLikeQty(cudInfoDto, id);
+            IBoard result = this.getBoardAndLike(id, loginUser);
+            if ( result == null ) {
+                return ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(result);
+        } catch ( Exception ex ) {
+            log.error(ex.toString());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private IBoard getBoardAndLike(Long id, IMember loginUser) {
+        IBoard result = this.boardService.findById(id);
+        if ( result == null ) {
+            return null;
+        }
+        BoardLikeDto boardLikeDto = BoardLikeDto.builder()
+                .tbl("board")
+                .likeUserId(loginUser.getLoginId())
+                .boardId(id)
+                .build();
+        Integer likeCount = this.boardLikeService.countByTableUserBoard(boardLikeDto);
+        result.setDelFlag(likeCount.toString());
+        return result;
     }
 }
