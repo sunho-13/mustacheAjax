@@ -180,6 +180,7 @@ public class BoardApiController {
                 return ResponseEntity.badRequest().build();
             }
             int total = this.boardService.countAllByNameContains(searchAjaxDto);
+
             return ResponseEntity.ok(total);
         } catch ( Exception ex ) {
             log.error(ex.toString());
