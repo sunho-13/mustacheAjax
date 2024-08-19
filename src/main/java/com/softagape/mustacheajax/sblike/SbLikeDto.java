@@ -1,4 +1,4 @@
-package com.softagape.mustacheajax.boardlike;
+package com.softagape.mustacheajax.sblike;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,9 +11,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardLikeDto implements IBoardLike {
+public class SbLikeDto implements ISbLike {
     private Long id;
     private String tbl;
-    private String likeUserId;
+    private String nickname;
     private Long boardId;
 }
