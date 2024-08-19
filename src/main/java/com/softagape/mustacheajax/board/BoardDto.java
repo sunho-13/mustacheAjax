@@ -1,7 +1,6 @@
 package com.softagape.mustacheajax.board;
 
 import com.softagape.mustacheajax.commons.dto.BaseDto;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +18,4 @@ public class BoardDto extends BaseDto implements IBoard {
     private String content;
     private Integer viewQty;
     private Integer likeQty;
-    private String delFlag;
-
 }

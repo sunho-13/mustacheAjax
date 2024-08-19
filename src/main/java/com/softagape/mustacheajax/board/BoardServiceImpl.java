@@ -1,7 +1,6 @@
 package com.softagape.mustacheajax.board;
 
 import com.softagape.mustacheajax.boardlike.BoardLikeDto;
-import com.softagape.mustacheajax.boardlike.BoardLikeServiceImpl;
 import com.softagape.mustacheajax.boardlike.IBoardLikeMybatisMapper;
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.commons.dto.SearchAjaxDto;
@@ -122,14 +121,14 @@ public class BoardServiceImpl implements IBoardService {
     }
 
     @Override
-    public Boolean deleteFlag(CUDInfoDto info, BoardDto dto) {
+    public Boolean updateDeleteFlag(CUDInfoDto info, BoardDto dto) {
         if ( info == null || dto == null ) {
             return false;
         }
         BoardDto delete = BoardDto.builder().build();
         delete.copyFields(dto);
         info.setDeleteInfo(delete);
-        this.boardMybatisMapper.deleteFlag(delete);
+        this.boardMybatisMapper.updateDeleteFlag(delete);
         return true;
     }
 
