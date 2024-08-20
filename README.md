@@ -65,7 +65,7 @@ CREATE TABLE `board_tbl` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `board_like_tbl` (
+CREATE TABLE `sblike_tbl` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `tbl` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `nickname` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,

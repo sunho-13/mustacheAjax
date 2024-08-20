@@ -3,6 +3,7 @@ package com.softagape.mustacheajax.security.controller;
 import com.softagape.mustacheajax.member.IMember;
 import com.softagape.mustacheajax.member.IMemberService;
 import com.softagape.mustacheajax.member.MemberRole;
+import com.softagape.mustacheajax.security.config.SecurityConfig;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -28,7 +29,7 @@ public class IndexController {
     private String signout(HttpServletResponse response, HttpSession session) {
         session.invalidate();
 
-        Cookie cookie = new Cookie("loginId", null);
+        Cookie cookie = new Cookie(SecurityConfig.LOGINUSER, null);
         cookie.setMaxAge(0);
         response.addCookie(cookie);
         return "login/signout";

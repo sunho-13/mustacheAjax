@@ -15,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    public static final String LOGINUSER = "sb3";
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

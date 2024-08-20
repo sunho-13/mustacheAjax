@@ -218,9 +218,9 @@
                 console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                 // javascript 기본 객체 console 에 프린트한다.
                 if (status === "success") {
-                    $("#total").html(data.total);   // id="total" 요소의 <요소>문자</요소> html 의 문자를 설정한다.
-                    $.showBoardList(data.dataList);
-                    $.makePageUI(data.total, page);
+                    $("#total").html(data.result.total);   // id="total" 요소의 <요소>문자</요소> html 의 문자를 설정한다.
+                    $.showBoardList(data.result.dataList);
+                    $.makePageUI(data.result.total, page);
                 }
             }).fail(function (jqXHR, status, errorThrown) {
                 // ajax 의 요청이 실패하면 실행한다.
@@ -228,7 +228,7 @@
                 // status : http 응답, 4XX, 5XX
                 // errorThrown : error 를 던진 곳의 정보
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                alert("검색을 실패했습니다.");
+                alert("검색을 실패했습니다. " + jqXHR.responseJSON.message);
             });
         }
 
@@ -274,11 +274,11 @@
                 console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                 if (status === "success") {
                     $.getBoardFiles(id);
-                    $.showBoardInfo(data);
+                    $.showBoardInfo(data.result);
                 }
             }).fail(function (jqXHR, status, errorThrown) {
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                alert("보기 실패했습니다.");
+                alert("보기 실패했습니다. " + jqXHR.responseJSON.message);
             });
         }
 
@@ -313,32 +313,39 @@
             }).done(function (data, status, xhr) {
                 console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                 if (status === "success") {
-                    $.showBoardFiles(data);
+                    $.showBoardFiles(data.result);
                 }
             }).fail(function (jqXHR, status, errorThrown) {
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                alert("첨부파일 보기 실패했습니다.");
+                alert("첨부파일 보기 실패했습니다. " + jqXHR.responseJSON.message);
             });
         }
+
+        let fileArrayView = new Array();
+        let fileArrayModity = new Array();
 
         $.showBoardFiles = function (list) {
             if (list == null) {
                 return;
             }
             let html = "";
-            $("#fileList").children().remove();
-            for ( const file of list ) {
+            fileArrayView = list;
+            $("#fileListView").children().remove();
+            for ( const file of fileArrayView ) {
                 let id = file.id;
                 let tbl = file.tbl;
                 let name = file.name;
                 let uniqName = file.uniqName;
                 let fileType = file.fileType;
                 let size = file.length;
-                html += "<div onclick=\"$.downloadFile('" + tbl + "', '" + name + "'" +
+                html += "<div id='fileView_" + id + "'>";
+                html += "<div class='filename' onclick=\"$.downloadFile('" + tbl + "', '" + name + "'" +
                     ", '" + uniqName + "', '" + fileType + "')\">" + name + ", " + size + "</div>";
                 html += "<div onclick='$.downloadFileId(" + id + ")'>※</div>";
+                html += "<div onclick='$.deleteFileId(" + id + ")'>Ｘ</div>";
+                html += "</div>";
             }
-            $("#fileList").append(html);
+            $("#fileListView").append(html);
         }
 
         $.downloadFile = function (tbl, name, uniqName, fileTpye) {
@@ -355,6 +362,16 @@
             }
             document.location.href = "/api/v1/board/fileId/" + id;
             // ISbFileService findById 필요하다.
+        }
+
+        $.deleteFileId = function (id) {
+            for ( const file of fileArrayView ) {
+                if ( id === file.id ) {
+                    file.deleteFlag = true;
+                    $("#fileView_" + id + " .filename").attr("style", "text-decoration: line-through;");
+                    break;
+                }
+            }
         }
 
         $.makePageUI = function (paramTotal, paramPage) {
@@ -412,7 +429,7 @@
             }
 
             let formData = new FormData();
-            for ( const file of fileArray ) {
+            for ( const file of fileArrayAdd ) {
                 formData.append("files", file);
             }
             formData.append("boardDto", new Blob([JSON.stringify({"name": name, "content": content})], {type:"application/json"}));
@@ -436,8 +453,25 @@
                 // class="modalCloseButton" 요소를 클릭하는 이벤트를 발생한다.
             }).fail(function (jqXHR, status, errorThrown) {
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                alert("추가를 실패했습니다.");
+                let message = getErrorMessage(jqXHR.responseJSON);
+                alert("추가를 실패했습니다. " + message);
             });
+        }
+
+        function getErrorMessage(resonseJSON) {
+            if ( resonseJSON === undefined ) {
+                return "";
+            }
+            if ( resonseJSON.errors !== undefined && resonseJSON.errors.length >= 1 ) {
+                let message = "";
+                for ( let i = 0; i < resonseJSON.errors.length; i++ ) {
+                    message += "\n" + resonseJSON.errors[i].field + " : " +
+                        resonseJSON.errors[i].defaultMessage;
+                }
+                return message;
+            } else {
+                return resonseJSON.message;
+            }
         }
 
         $.update = function () {
@@ -447,12 +481,23 @@
             if (!confirm(name + " 수정 하시겠습니까 ?")) {
                 return;
             }
+
+            let formData = new FormData();
+            for ( const file of fileArrayModity ) {
+                formData.append("files", file);
+                // 기존 게시글에 첨부파일을 새로 추가하는 경우
+            }
+            formData.append("boardDto", new Blob([JSON.stringify({"id": id, "name": name, "content": content})], {type:"application/json"}));
+            // 기존 게시글의 제목과 본문의 수정한것
+            formData.append("sbfiles", new Blob([JSON.stringify(fileArrayView)], {type:"application/json"}));
+            // 기존 게시글의 첨부파일들에서 삭제여부 배열
             $.ajax({
                 url: "/api/v1/board",
                 type: "PATCH",
                 datatype: "JSON",
-                data: JSON.stringify({"id": id, "name": name, "content": content}),
-                contentType: "application/json; charset=UTF-8",
+                data: formData, // JSON.stringify({"id": id, "name": name, "content": content}),
+                contentType: false,
+                processData: false,
             }).done(function (data, status, xhr) {
                 console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                 // update 성공 완료시
@@ -464,7 +509,8 @@
                 // class="modalCloseButton" 요소를 클릭하는 이벤트를 발생한다.
             }).fail(function (jqXHR, status, errorThrown) {
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                alert("수정를 실패했습니다.");
+                let message = getErrorMessage(jqXHR.responseJSON);
+                alert("수정을 실패했습니다. " + message);
             });
         }
 
@@ -492,7 +538,7 @@
                 // }
             }).fail(function (jqXHR, status, errorThrown) {
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                alert("삭제를 실패했습니다.");
+                alert("삭제를 실패했습니다. " + jqXHR.responseJSON.message);
             });
         }
 
@@ -508,7 +554,7 @@
             }).done(function (data, status, xhr) {
                 console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                 // 삭제 후에 검색식과 total 로 계산해서 현재 페이지를 page-1 해야 할지 결정 한다.
-                total = data;
+                total = data.result;
                 let totPage = ~~((total + rowsOnePage - 1) / rowsOnePage);
                 if (totPage < page) {
                     page = totPage;
@@ -521,6 +567,7 @@
                 $(".modalCloseButton").trigger("click");
             }).fail(function (jqXHR, status, errorThrown) {
                 console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
+                alert("삭제 후 새로고침을 실패했습니다. " + jqXHR.responseJSON.message);
             });
         }
 
@@ -541,12 +588,11 @@
                 }).done(function (data, status, xhr) {
                     console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                     if (status === "success") {
-                        //heartIcon.attr("src", "/svg/heartOn.svg");
-                        $.showBoardInfo(data);
+                        $.showBoardInfo(data.result);
                     }
                 }).fail(function (jqXHR, status, errorThrown) {
                     console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                    alert("Like 실패 했습니다.");
+                    alert("Like 실패 했습니다. " + jqXHR.responseJSON.message);
                 });
             } else {
                 $.ajax({
@@ -557,17 +603,16 @@
                 }).done(function (data, status, xhr) {
                     console.log("done:data=" + data + ", status=", status, ", xhr=", xhr);
                     if (status === "success") {
-                        //heartIcon.attr("src", "/svg/heartOff.svg");
-                        $.showBoardInfo(data);
+                        $.showBoardInfo(data.result);
                     }
                 }).fail(function (jqXHR, status, errorThrown) {
                     console.log("done:jqXHR=" + jqXHR + ", status=", status, ", errorThrown=", errorThrown);
-                    alert("UnLike 실패 했습니다.");
+                    alert("UnLike 실패 했습니다. " + jqXHR.responseJSON.message);
                 });
             }
         }
 
-        let fileArray = new Array();
+        let fileArrayAdd = new Array();
 
         $.addFile = function(inputFile) {
             let num = 0;
@@ -576,9 +621,22 @@
                 html += "<div id='file" + num + "' class='filebox'>";
                 html += "<div class='filename'>" + file.name + "</div>";
                 html += "</div>";
-                $(".file-list").append(html);
-                fileArray.push(file);
+                $("#fileListAdd").append(html);
+                fileArrayAdd.push(file);
                 num++;
+            }
+        }
+
+        $.addFileModity = function(inputFile) {
+            let num = 0;
+            for ( const file of inputFile.files ) {
+                let html = "";
+                html += "<div id='fileView_" + num + "' class='filebox'>";
+                html += "<div class='filename'>" + file.name + "</div>";
+                html += "</div>";
+                $("#fileListView").append(html);
+                fileArrayModity.push(file);
+                num--;
             }
         }
     </script>
@@ -645,7 +703,7 @@
                     <div>
                         <label for="file">첨부파일</label>
                         <input type="file" id="file" name="file" onchange="$.addFile(this);" multiple />
-                        <div class="file-list"></div>
+                        <div id="fileListAdd" class="file-list"></div>
                     </div>
                     <div class="row">
                         <div class="col-6">
@@ -670,7 +728,11 @@
                     <label for="content2">Name</label> <textarea id="content2" name="content2"></textarea>
                 </div>
                 <div>
-                    <div id="fileList" class="file-list"></div>
+                    <div id="fileListView" class="file-list"></div>
+                </div>
+                <div>
+                    <label for="file">첨부파일</label>
+                    <input type="file" id="fileModity" name="file" onchange="$.addFileModity(this);" multiple />
                 </div>
                 <div class="row">
                     <div class="col-6">

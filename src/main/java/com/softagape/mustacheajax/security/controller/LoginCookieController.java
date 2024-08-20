@@ -2,6 +2,7 @@ package com.softagape.mustacheajax.security.controller;
 
 import com.softagape.mustacheajax.member.IMember;
 import com.softagape.mustacheajax.member.IMemberService;
+import com.softagape.mustacheajax.security.config.SecurityConfig;
 import com.softagape.mustacheajax.security.dto.LoginRequest;
 import com.softagape.mustacheajax.security.dto.SignUpRequest;
 import jakarta.servlet.http.Cookie;
@@ -53,13 +54,13 @@ public class LoginCookieController {
             if ( loginUser == null ) {
                 return "login/fail";
             }
-            Cookie cookie = new Cookie("loginId", loginUser.getLoginId());
+            Cookie cookie = new Cookie(SecurityConfig.LOGINUSER, loginUser.getLoginId());
             cookie.setMaxAge(60 * 30);
             cookie.setPath("/");    // 쿠키 사용 가능한 url 주소를 root 로 설정
             cookie.setHttpOnly(true);   // 쿠키를 client 에서 수정 못하도록 설정
             response.addCookie(cookie);
 
-            model.addAttribute("loginUser", loginUser);
+            model.addAttribute(SecurityConfig.LOGINUSER, loginUser);
         } catch (Exception ex) {
             log.error(ex.toString());
         }

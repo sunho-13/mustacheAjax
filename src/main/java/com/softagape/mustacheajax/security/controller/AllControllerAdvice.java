@@ -2,6 +2,7 @@ package com.softagape.mustacheajax.security.controller;
 
 import com.softagape.mustacheajax.member.IMember;
 import com.softagape.mustacheajax.member.IMemberService;
+import com.softagape.mustacheajax.security.config.SecurityConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
@@ -27,14 +28,14 @@ public class AllControllerAdvice {
 
 
     @ModelAttribute // @ControllerAdvice, @ModelAttribute 이 단어가 있어야지만 모든 주소 요청시 가로챌수 있다.
-    public void addModel(HttpServletRequest request, Model model
-            , @SessionAttribute(name = "loginId", required = false) String loginId) {
+    public void addModel( HttpServletRequest request, Model model
+                          , @SessionAttribute(name = SecurityConfig.LOGINUSER, required = false) String loginId ) {
         String url = request.getRequestURI();
         String bFind = Arrays.stream(this.authUrls)
                 .filter(url::contains).findFirst().orElse(null);
-        if (bFind != null && loginId != null) {
+        if ( bFind != null && loginId != null ) {
             IMember loginUser = this.memberService.findByLoginId(loginId);
-            model.addAttribute("loginUser", loginUser);
+            model.addAttribute(SecurityConfig.LOGINUSER, loginUser);
         }
     }
 }
