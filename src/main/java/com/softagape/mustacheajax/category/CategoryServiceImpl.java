@@ -123,7 +123,7 @@ public class CategoryServiceImpl implements ICategoryService<ICategory> {
             // 한 페이지당 보여주는 행의 갯수
             dto.setRowsOnePage(10);
         }
-        if ( dto.getPage() <= 0 ) {
+        if ( dto.getPage() == null || dto.getPage() <= 0 ) {
             dto.setPage(1);
         }
         List<ICategory> list = this.getICategoryList(

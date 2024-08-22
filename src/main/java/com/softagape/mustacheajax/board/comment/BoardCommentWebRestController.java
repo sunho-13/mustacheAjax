@@ -1,10 +1,13 @@
-package com.softagape.mustacheajax.member;
+package com.softagape.mustacheajax.board.comment;
 
+import com.softagape.mustacheajax.commentlike.CommentLikeDto;
+import com.softagape.mustacheajax.commentlike.ICommentLikeService;
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.commons.dto.ResponseCode;
 import com.softagape.mustacheajax.commons.dto.ResponseDto;
 import com.softagape.mustacheajax.commons.inif.ICommonRestController;
-import com.softagape.mustacheajax.commons.dto.SearchAjaxDto;
+import com.softagape.mustacheajax.member.IMember;
+import com.softagape.mustacheajax.member.MemberRole;
 import com.softagape.mustacheajax.security.config.SecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +21,16 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/member")
-public class MemberWebRestController implements ICommonRestController<MemberDto> {
+@RequestMapping("/api/v1/boardcomment")
+public class BoardCommentWebRestController implements ICommonRestController<BoardCommentDto> {
     @Autowired
-    private IMemberService memberService;
+    private IBoardCommentService boardCommentService;
+
+    @Autowired
+    private ICommentLikeService commentLikeService;
 
     @PostMapping
-    public ResponseEntity<ResponseDto> insert(Model model, @Validated @RequestBody MemberDto dto) {
+    public ResponseEntity<ResponseDto> insert(Model model, @Validated @RequestBody BoardCommentDto dto) {
         try {
             if ( dto == null ) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
@@ -32,12 +38,9 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
             IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
             if ( loginUser == null ) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
-            } else if ( !loginUser.getRole().equals(MemberRole.ADMIN.toString()) ) {
-                return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888889, "관리자 권한 필요", null);
             }
-            MemberDto memberDto = MemberDto.builder().nickname(dto.getNickname()).build();
-            CUDInfoDto cudInfoDto = new CUDInfoDto(memberDto);
-            IMember result = this.memberService.insert(cudInfoDto, dto);
+            CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
+            IBoardComment result = this.boardCommentService.insert(cudInfoDto, dto);
             if ( result == null ) {
                 return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R000011, "서버 입력 에러", null);
             }
@@ -49,12 +52,12 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ResponseDto> update(Model model, @PathVariable Long id, @Validated @RequestBody MemberDto dto) {
+    public ResponseEntity<ResponseDto> update(Model model, @PathVariable Long id, @Validated @RequestBody BoardCommentDto dto) {
         try {
             if ( id == null || dto == null || !id.equals(dto.getId()) ) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
             }
-            IMember find = this.memberService.findById(id);
+            IBoardComment find = this.boardCommentService.findById(id);
             if ( find == null ) {
                 return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
             }
@@ -65,7 +68,7 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888889, "관리자와 본인만 수정 가능", null);
             }
             CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
-            IMember result = this.memberService.update(cudInfoDto, dto);
+            IBoardComment result = this.boardCommentService.update(cudInfoDto, dto);
             if ( result == null ) {
                 return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R000021, "서버 수정 에러", null);
             }
@@ -77,26 +80,25 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
     }
 
     @DeleteMapping("/deleteFlag/{id}")
-    public ResponseEntity<ResponseDto> updateDeleteFlag(Model model, @PathVariable Long id, @Validated @RequestBody MemberDto dto) {
+    public ResponseEntity<ResponseDto> updateDeleteFlag(Model model, @PathVariable Long id, @RequestBody BoardCommentDto dto) {
         try {
-            if ( id == null || dto == null || !id.equals(dto.getId()) || dto.getDeleteFlag() == null ) {
+            if (id == null || dto == null || dto.getId() == null || dto.getId() <= 0 || !id.equals(dto.getId()) || dto.getDeleteFlag() == null) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
             }
-            IMember find = this.memberService.findById(id);
-            if ( find == null ) {
+            IBoardComment find = this.boardCommentService.findById(id);
+            if (find == null) {
                 return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
             }
-            IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
-            if ( loginUser == null ) {
+            IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
+            if (loginUser == null) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
-            } else if ( !loginUser.getRole().equals(MemberRole.ADMIN.toString()) ) {
-                return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888889, "관리자 권한 필요", null);
+            } else if (!loginUser.getRole().equals(MemberRole.ADMIN.toString()) && !loginUser.getNickname().equals(find.getCreateId())) {
+                return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888889, "관리자와 본인만 삭제 가능", null);
             }
             CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
-            cudInfoDto.setDeleteInfo(dto);
-            Boolean result = this.memberService.updateDeleteFlag(cudInfoDto, dto);
+            Boolean result = this.boardCommentService.updateDeleteFlag(cudInfoDto, dto);
             return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", result);
-        } catch ( Exception ex ) {
+        } catch (Exception ex) {
             log.error(ex.toString());
             return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R999999, ex.toString(), null);
         }
@@ -105,23 +107,22 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDto> deleteById(Model model, @PathVariable Long id) {
         try {
-            if ( id == null || id <= 0 ) {
+            if (id == null || id <= 0) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
             }
-            IMember find = this.memberService.findById(id);
-            if ( find == null ) {
+            IBoardComment find = this.boardCommentService.findById(id);
+            if (find == null) {
                 return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
             }
-            IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
-            if ( loginUser == null ) {
+            IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
+            if (loginUser == null) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
-            } else if ( !loginUser.getRole().equals(MemberRole.ADMIN.toString()) ) {
+            } else if (!loginUser.getRole().equals(MemberRole.ADMIN.toString())) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888889, "관리자 권한 필요", null);
             }
-            CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
-            Boolean result = this.memberService.deleteById(id);
+            Boolean result = this.boardCommentService.deleteById(id);
             return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", result);
-        } catch ( Exception ex ) {
+        } catch (Exception ex) {
             log.error(ex.toString());
             return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R999999, ex.toString(), null);
         }
@@ -130,35 +131,38 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto> findById(Model model, @PathVariable Long id) {
         try {
-            if ( id == null || id <= 0 ) {
+            if (id == null || id <= 0) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
             }
-            IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
-            if ( loginUser == null ) {
+            IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
+            if (loginUser == null) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
             }
-            IMember find = this.memberService.findById(id);
-            if ( find == null ) {
+            IBoardComment result = this.getCommentAndLike(id, loginUser);
+            if (result == null) {
                 return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
             }
-            return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", find);
-        } catch ( Exception ex ) {
+            return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", result);
+        } catch (Exception ex) {
             log.error(ex.toString());
             return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R999999, ex.toString(), null);
         }
     }
-
-    @PostMapping("/countName")  // POST method : /ct/countName
-    public ResponseEntity<ResponseDto> countAllByNameContains(Model model, @RequestBody SearchAjaxDto searchAjaxDto) {
+    @PostMapping("/findbyboardid")
+    public ResponseEntity<ResponseDto> findByBoardId(Model model
+            , @Validated @RequestBody SearchBoardCommentDto dto) {
         try {
-            if ( searchAjaxDto == null ) {
+            if ( dto == null ) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
             }
-            IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
-            if ( loginUser == null ) {
+            IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
+            if (loginUser == null) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
             }
-            Integer result = this.memberService.countAllByNameContains(searchAjaxDto);
+            List<BoardCommentDto> result = this.boardCommentService.findAllByBoardId(loginUser, dto);
+            if ( result == null ) {
+                return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
+            }
             return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", result);
         } catch ( Exception ex ) {
             log.error(ex.toString());
@@ -166,27 +170,72 @@ public class MemberWebRestController implements ICommonRestController<MemberDto>
         }
     }
 
-    @PostMapping("/searchName")
-    public ResponseEntity<ResponseDto> findAllByNameContains(Model model, @RequestBody SearchAjaxDto searchAjaxDto) {
+    @GetMapping("/like/{id}")
+    public ResponseEntity<ResponseDto> addLikeQty(Model model, @PathVariable Long id) {
         try {
-            if ( searchAjaxDto == null ) {
+            if (id == null || id <= 0) {
                 return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
             }
-            IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
-            if ( loginUser == null ) {
+            IBoardComment find = this.boardCommentService.findById(id);
+            if (find == null) {
+                return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
+            }
+            IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
+            if (loginUser == null) {
                 return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
             }
-            int total = this.memberService.countAllByNameContains(searchAjaxDto);
-            List<IMember> list = this.memberService.findAllByNameContains(searchAjaxDto);
-            if ( list == null ) {
-                return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "서버 검색 에러", null);
+            CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
+            this.boardCommentService.addLikeQty(cudInfoDto, id);
+            IBoardComment result = this.getCommentAndLike(id, loginUser);
+            if (result == null) {
+                return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
             }
-            searchAjaxDto.setTotal(total);
-            searchAjaxDto.setDataList(list);
-            return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", searchAjaxDto);
-        } catch ( Exception ex ) {
+            return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", result);
+        } catch (Exception ex) {
             log.error(ex.toString());
             return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R999999, ex.toString(), null);
         }
+    }
+
+    @GetMapping("/unlike/{id}")
+    public ResponseEntity<ResponseDto> subLikeQty(Model model, @PathVariable Long id) {
+        try {
+            if (id == null || id <= 0) {
+                return makeResponseEntity(HttpStatus.BAD_REQUEST, ResponseCode.R000051, "입력 매개변수 에러", null);
+            }
+            IBoardComment find = this.boardCommentService.findById(id);
+            if (find == null) {
+                return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
+            }
+            IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
+            if (loginUser == null) {
+                return makeResponseEntity(HttpStatus.FORBIDDEN, ResponseCode.R888881, "로그인 필요", null);
+            }
+            CUDInfoDto cudInfoDto = new CUDInfoDto(loginUser);
+            this.boardCommentService.subLikeQty(cudInfoDto, id);
+            IBoardComment result = this.getCommentAndLike(id, loginUser);
+            if (result == null) {
+                return makeResponseEntity(HttpStatus.NOT_FOUND, ResponseCode.R000041, "데이터 검색 에러", null);
+            }
+            return makeResponseEntity(HttpStatus.OK, ResponseCode.R000000, "성공", result);
+        } catch (Exception ex) {
+            log.error(ex.toString());
+            return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.R999999, ex.toString(), null);
+        }
+    }
+
+    private IBoardComment getCommentAndLike(Long id, IMember loginUser) {
+        IBoardComment result = this.boardCommentService.findById(id);
+        if (result == null) {
+            return null;
+        }
+        CommentLikeDto boardLikeDto = CommentLikeDto.builder()
+                .commentTbl(new BoardCommentDto().getTbl())
+                .nickname(loginUser.getNickname())
+                .commentId(id)
+                .build();
+        Integer likeCount = this.commentLikeService.countByCommentTableUserBoard(boardLikeDto);
+        result.setDeleteDt(likeCount.toString());
+        return result;
     }
 }

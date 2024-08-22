@@ -178,7 +178,7 @@ public class MemberServiceImpl implements IMemberService {
         if ( dto.getRowsOnePage() == null ) {
             dto.setRowsOnePage(10);
         }
-        if ( dto.getPage() <= 0 ) {
+        if ( dto.getPage() == null || dto.getPage() <= 0 ) {
             dto.setPage(1);
         }
         List<IMember> result = this.getIMemberList(
