@@ -2,7 +2,6 @@ package com.softagape.mustacheajax.category;
 
 import com.softagape.mustacheajax.commons.dto.SearchAjaxDto;
 import com.softagape.mustacheajax.member.IMember;
-import com.softagape.mustacheajax.member.MemberRole;
 import com.softagape.mustacheajax.security.config.SecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,7 @@ import java.util.List;
 @Slf4j  // log 를 만들어 준다.
 @Controller // Web 용 Controller 이다. 화면을 그리거나 redirect 할때 유용하다.
 @RequestMapping("/catweb")  // Controller 의 url 앞부분이다.
-public class CatWebController {
+public class CatWebOldController {
     @Autowired  // SpringBoot 가 CategoryServiceImpl 데이터형으로 객체를 자동 생성한다.
     private CategoryServiceImpl categoryService;
 
@@ -31,10 +30,6 @@ public class CatWebController {
             IMember loginUser = (IMember)model.getAttribute(SecurityConfig.LOGINUSER);
             if ( loginUser == null ) {
                 // 로그인 사용자가 아니면 리턴
-                return "redirect:/";
-            }
-            if ( !loginUser.getRole().equals(MemberRole.ADMIN.toString()) ) {
-                // 로그인 사용자의 role 이 ADMIN 이 아니면 리턴
                 return "redirect:/";
             }
             SearchAjaxDto searchAjaxDto = SearchAjaxDto.builder()
@@ -123,7 +118,7 @@ public class CatWebController {
         // @ModelAttribute CategoryDto dto : POST 방식의 요청은 값이 숨겨져 있다. HTTP Request web form
         //  :  주소에서 ?searchName=&page=값 변수의 값을 받는다. "application/x-www-form-?????"
         try {
-            this.categoryService.update(dto.getId(), dto);
+            this.categoryService.update(dto);
             // categoryService Ipml 의 update 를 실행한다.
         } catch (Exception ex) {
             log.error(ex.toString()); // error 응답
@@ -139,7 +134,7 @@ public class CatWebController {
         // @RequestParam Long id : HTTP Request Query Parameter String
         //  : url 주소에서 ?id=값 변수의 값을 받는다.
         try {
-            this.categoryService.delete(id);
+            this.categoryService.deleteById(id);
             // categoryService Ipml 의 delete 를 실행한다.
         } catch (Exception ex) {
             log.error(ex.toString()); // error 응답

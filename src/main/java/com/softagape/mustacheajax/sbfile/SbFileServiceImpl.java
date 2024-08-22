@@ -1,6 +1,6 @@
 package com.softagape.mustacheajax.sbfile;
 
-import com.softagape.mustacheajax.board.BoardDto;
+import com.softagape.mustacheajax.board.IBoard;
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.filecntl.FileCtrlService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class SbFileServiceImpl implements ISbFileService {
 
     @Override
     public ISbFile insert(CUDInfoDto info, ISbFile dto) {
-        if ( dto == null ) {
+        if (dto == null) {
             return null;
         }
         SbFileDto insert = SbFileDto.builder().build();
@@ -39,7 +39,7 @@ public class SbFileServiceImpl implements ISbFileService {
 
     @Override
     public Boolean updateDeleteFlag(CUDInfoDto info, ISbFile dto) {
-        if ( dto == null ) {
+        if (dto == null || dto.getId() == null || dto.getId() <= 0) {
             return false;
         }
         SbFileDto update = SbFileDto.builder().build();
@@ -50,7 +50,7 @@ public class SbFileServiceImpl implements ISbFileService {
 
     @Override
     public Boolean deleteById(Long id) {
-        if ( id == null || id <= 0 ) {
+        if (id == null || id <= 0) {
             return false;
         }
         this.sbFileMybatisMapper.deleteById(id);
@@ -59,7 +59,7 @@ public class SbFileServiceImpl implements ISbFileService {
 
     @Override
     public ISbFile findById(Long id) {
-        if ( id == null || id <= 0 ) {
+        if (id == null || id <= 0) {
             return null;
         }
         SbFileDto find = this.sbFileMybatisMapper.findById(id);
@@ -68,19 +68,27 @@ public class SbFileServiceImpl implements ISbFileService {
 
     @Override
     public List<ISbFile> findAllByTblBoardId(ISbFile search) {
-        if ( search == null ) {
+        if (search == null) {
             return List.of();
         }
         SbFileDto dto = SbFileDto.builder().build();
         dto.copyFields(search);
         List<SbFileDto> list = this.sbFileMybatisMapper.findAllByTblBoardId(dto);
-        List<ISbFile> result = list.stream().map(x -> (ISbFile)x).toList();
+        List<ISbFile> result = this.getInterfaceList(list);
+        return result;
+    }
+
+    private List<ISbFile> getInterfaceList(List<SbFileDto> list) {
+        if (list == null) {
+            return List.of();
+        }
+        List<ISbFile> result = list.stream().map(x -> (ISbFile) x).toList();
         return result;
     }
 
     @Override
-    public Boolean insertFiles(BoardDto boardDto, MultipartFile[] files) {
-        if ( boardDto == null || files == null || files.length <= 0 ) {
+    public Boolean insertFiles(IBoard boardDto, List<MultipartFile> files) {
+        if ( boardDto == null || files == null ) {
             return false;
         }
         int ord = 0;
@@ -90,13 +98,13 @@ public class SbFileServiceImpl implements ISbFileService {
                     .ord(ord++)
                     .fileType(this.getFileType(Objects.requireNonNull(file.getOriginalFilename())))
                     .uniqName(UUID.randomUUID().toString())
-                    .length((int)file.getSize())
-                    .tbl("board")
+                    .length(file.getSize())
+                    .tbl(boardDto.getTbl())
                     .boardId(boardDto.getId())
                     .build();
             try {
                 this.sbFileMybatisMapper.insert(insert);
-                this.fileCtrlService.saveFile(file, insert.getUniqName() + insert.getFileType());
+                this.fileCtrlService.saveFile(file, insert.getTbl(), insert.getUniqName() + insert.getFileType());
             } catch (Exception ex) {
                 log.error(ex.toString());
             }
@@ -105,13 +113,10 @@ public class SbFileServiceImpl implements ISbFileService {
     }
 
     @Override
-    public Boolean updateFiles(BoardDto boardDto, List<SbFileDto> sbFileDtoList) {
-        if ( boardDto == null ) {
-            return false;
-        }
-        for ( SbFileDto sbFileDto : sbFileDtoList ) {
+    public Boolean updateFiles(List<SbFileDto> sbFileDtoList) {
+        for ( ISbFile sbFileDto : sbFileDtoList ) {
             if (sbFileDto.getDeleteFlag()) {
-                this.sbFileMybatisMapper.updateDeleteFlag(sbFileDto);
+                this.sbFileMybatisMapper.updateDeleteFlag((SbFileDto) sbFileDto);
             }
         }
         return true;

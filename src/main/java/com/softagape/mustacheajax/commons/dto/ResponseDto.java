@@ -1,13 +1,18 @@
 package com.softagape.mustacheajax.commons.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResponseDto {
+    private ResponseCode responseCode;
     private String message;
-    private Object result;
+    private Object responseData;
 }
