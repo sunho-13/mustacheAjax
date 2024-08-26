@@ -14,8 +14,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginRequest extends BaseNullRequest {
-    @Size(min = 8, max = 10, message = "·Î±×ÀÎID´Â 8~10ÀÚ ÀÌ¾î¾ß ÇÕ´Ï´Ù.")
+    @Size(min = 8, max = 10, message = "ë¡œê·¸ì¸IDëŠ” 8~10ì ì´ì–´ì•¼ í•©ë‹ˆë‹¤.")
     private String loginId;
-    @Size(min = 8, max = 20, message = "¾ÏÈ£´Â 8~20ÀÚ ÀÌ¾î¾ß ÇÕ´Ï´Ù.")
+    @Size(min = 8, max = 20, message = "ì•”í˜¸ëŠ” 8~20ì ì´ì–´ì•¼ í•©ë‹ˆë‹¤.")
     private String password;
 }
