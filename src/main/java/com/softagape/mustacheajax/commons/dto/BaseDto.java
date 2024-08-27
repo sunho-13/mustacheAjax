@@ -19,7 +19,7 @@ public class BaseDto implements IBase {
     private Long updateId;
     private String updateName;
     private String deleteDt;
-    private Long deleteId;
     private String deleteName;
+    private Long deleteId;
     private Boolean deleteFlag;
 }

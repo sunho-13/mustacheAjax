@@ -24,9 +24,9 @@ public class BaseNullRequest implements IBase {
     @Null
     private Long updateId;
     @Null
-    private String updateName;
-    @Null
     private String deleteDt;
+    @Null
+    private String updateName;
     @Null
     private Long deleteId;
     @Null
