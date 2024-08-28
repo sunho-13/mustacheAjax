@@ -2,6 +2,7 @@ package com.softagape.mustacheajax.member;
 
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.commons.dto.SearchAjaxDto;
+import com.softagape.mustacheajax.commons.exeption.IdNotFoundException;
 import com.softagape.mustacheajax.security.dto.LoginRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,9 @@ public class MemberServiceImpl implements IMemberService {
             return null;
         }
         MemberDto find = this.memberMybatisMapper.findById(id);
+        if (find == null) {
+            throw new IdNotFoundException(String.format("Error : not found id = %d !", id));
+        }
         return find;
     }
 
@@ -173,14 +177,7 @@ public class MemberServiceImpl implements IMemberService {
         if (dto == null) {
             return List.of();
         }
-        dto.setOrderByWord( (dto.getSortColumn() != null ? dto.getSortColumn() : "id")
-                + " " + (dto.getSortAscDsc() != null ? dto.getSortAscDsc() : "DESC") );
-        if ( dto.getRowsOnePage() == null ) {
-            dto.setRowsOnePage(10);
-        }
-        if ( dto.getPage() == null || dto.getPage() <= 0 ) {
-            dto.setPage(1);
-        }
+        dto.settingValues();
         List<IMember> result = this.getIMemberList(
                 this.memberMybatisMapper.findAllByNameContains(dto)
         );

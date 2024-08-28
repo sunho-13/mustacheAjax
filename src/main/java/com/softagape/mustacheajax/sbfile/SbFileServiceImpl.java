@@ -2,6 +2,7 @@ package com.softagape.mustacheajax.sbfile;
 
 import com.softagape.mustacheajax.board.IBoard;
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
+import com.softagape.mustacheajax.commons.exeption.IdNotFoundException;
 import com.softagape.mustacheajax.filecntl.FileCtrlService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class SbFileServiceImpl implements ISbFileService {
     private FileCtrlService fileCtrlService;
 
     @Override
-    public ISbFile insert(CUDInfoDto info, ISbFile dto) {
+    public ISbFile insert(CUDInfoDto cudInfoDto, ISbFile dto) {
         if (dto == null) {
             return null;
         }
@@ -63,6 +64,9 @@ public class SbFileServiceImpl implements ISbFileService {
             return null;
         }
         SbFileDto find = this.sbFileMybatisMapper.findById(id);
+        if (find == null) {
+            throw new IdNotFoundException(String.format("Error : not found id = %d !", id));
+        }
         return find;
     }
 
@@ -92,31 +96,32 @@ public class SbFileServiceImpl implements ISbFileService {
             return false;
         }
         int ord = 0;
-        for ( MultipartFile file : files ) {
-            SbFileDto insert = SbFileDto.builder()
-                    .name(file.getOriginalFilename())
-                    .ord(ord++)
-                    .fileType(this.getFileType(Objects.requireNonNull(file.getOriginalFilename())))
-                    .uniqName(UUID.randomUUID().toString())
-                    .length(file.getSize())
-                    .tbl(boardDto.getTbl())
-                    .boardId(boardDto.getId())
-                    .build();
-            try {
+        try {
+            for ( MultipartFile file : files ) {
+                SbFileDto insert = SbFileDto.builder()
+                        .name(file.getOriginalFilename())
+                        .ord(ord++)
+                        .fileType(this.getFileType(Objects.requireNonNull(file.getOriginalFilename())))
+                        .uniqName(UUID.randomUUID().toString())
+                        .length(file.getSize())
+                        .tbl(boardDto.getTbl())
+                        .boardId(boardDto.getId())
+                        .build();
                 this.sbFileMybatisMapper.insert(insert);
                 this.fileCtrlService.saveFile(file, insert.getTbl(), insert.getUniqName() + insert.getFileType());
-            } catch (Exception ex) {
-                log.error(ex.toString());
             }
+            return true;
+        } catch (Exception ex) {
+            log.error(ex.toString());
+            throw new RuntimeException(ex);
         }
-        return true;
     }
 
     @Override
     public Boolean updateFiles(List<SbFileDto> sbFileDtoList) {
-        for ( ISbFile sbFileDto : sbFileDtoList ) {
+        for ( SbFileDto sbFileDto : sbFileDtoList ) {
             if (sbFileDto.getDeleteFlag()) {
-                this.sbFileMybatisMapper.updateDeleteFlag((SbFileDto) sbFileDto);
+                this.sbFileMybatisMapper.updateDeleteFlag(sbFileDto);
             }
         }
         return true;

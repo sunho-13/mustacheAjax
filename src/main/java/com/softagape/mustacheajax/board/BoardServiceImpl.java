@@ -1,7 +1,8 @@
 package com.softagape.mustacheajax.board;
 
-import com.softagape.mustacheajax.filecntl.FileCtrlService;
+import com.softagape.mustacheajax.commons.exeption.IdNotFoundException;
 import com.softagape.mustacheajax.sbfile.ISbFileMybatisMapper;
+import com.softagape.mustacheajax.sbfile.ISbFileService;
 import com.softagape.mustacheajax.sbfile.SbFileDto;
 import com.softagape.mustacheajax.sblike.SbLikeDto;
 import com.softagape.mustacheajax.sblike.ISbLikeMybatisMapper;
@@ -9,6 +10,8 @@ import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.commons.dto.SearchAjaxDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,7 +27,7 @@ public class BoardServiceImpl implements IBoardService {
     private ISbFileMybatisMapper sbFileMybatisMapper;
 
     @Autowired
-    private FileCtrlService fileCtrlService;
+    private ISbFileService sbFileService;
 
     @Override
     public void addViewQty(Long id) {
@@ -35,6 +38,7 @@ public class BoardServiceImpl implements IBoardService {
     }
 
     @Override
+    @Transactional
     public void addLikeQty(CUDInfoDto cudInfoDto, Long id) {
         if ( cudInfoDto == null || cudInfoDto.getLoginUser() == null || id == null || id <= 0 ) {
             return;
@@ -54,6 +58,7 @@ public class BoardServiceImpl implements IBoardService {
     }
 
     @Override
+    @Transactional
     public void subLikeQty(CUDInfoDto cudInfoDto, Long id) {
         if ( cudInfoDto == null || cudInfoDto.getLoginUser() == null || id == null || id <= 0 ) {
             return;
@@ -86,16 +91,7 @@ public class BoardServiceImpl implements IBoardService {
         if ( searchAjaxDto == null ) {
             return List.of();
         }
-        searchAjaxDto.setOrderByWord( (searchAjaxDto.getSortColumn() != null ? searchAjaxDto.getSortColumn() : "id")
-                + " " + (searchAjaxDto.getSortAscDsc() != null ? searchAjaxDto.getSortAscDsc() : "DESC") );
-        // SQL select 문장의 ORDER BY 구문을 만들어 주는 역할
-        if ( searchAjaxDto.getRowsOnePage() == null ) {
-            // 한 페이지당 보여주는 행의 갯수
-            searchAjaxDto.setRowsOnePage(10);
-        }
-        if ( searchAjaxDto.getPage() <= 0 ) {
-            searchAjaxDto.setPage(1);
-        }
+        searchAjaxDto.settingValues();
         List<BoardDto> list = this.boardMybatisMapper.findAllByNameContains(searchAjaxDto);
         return list;
     }
@@ -108,8 +104,8 @@ public class BoardServiceImpl implements IBoardService {
         return result;
     }
 
-    @Override
-    public BoardDto insert(CUDInfoDto info, BoardDto dto) {
+    @Transactional
+    public BoardDto insert(CUDInfoDto info, BoardDto dto, List<MultipartFile> files) throws RuntimeException {
         if ( info == null || dto == null ) {
             return null;
         }
@@ -117,11 +113,13 @@ public class BoardServiceImpl implements IBoardService {
         insert.copyFields(dto);
         info.setCreateInfo(insert);
         this.boardMybatisMapper.insert(insert);
+        this.sbFileService.insertFiles(insert, files);
         return insert;
     }
 
-    @Override
-    public BoardDto update(CUDInfoDto info, BoardDto dto) {
+    @Transactional
+    public BoardDto update(CUDInfoDto info, BoardDto dto
+    , List<SbFileDto> sbFileDtoList, List<MultipartFile> files) throws RuntimeException {
         if ( info == null || dto == null ) {
             return null;
         }
@@ -129,6 +127,8 @@ public class BoardServiceImpl implements IBoardService {
         update.copyFields(dto);
         info.setUpdateInfo(update);
         this.boardMybatisMapper.update(update);
+        this.sbFileService.updateFiles(sbFileDtoList);
+        this.sbFileService.insertFiles(update, files);
         return update;
     }
 
@@ -166,6 +166,19 @@ public class BoardServiceImpl implements IBoardService {
             return null;
         }
         BoardDto find = this.boardMybatisMapper.findById(id);
+        if ( find == null ) {
+            throw new IdNotFoundException(String.format("Error : not found id = %d !", id));
+        }
         return find;
+    }
+
+    @Override
+    public BoardDto insert(CUDInfoDto cudInfoDto, BoardDto dto) {
+        return null;
+    }
+
+    @Override
+    public BoardDto update(CUDInfoDto cudInfoDto, BoardDto dto) {
+        return null;
     }
 }
