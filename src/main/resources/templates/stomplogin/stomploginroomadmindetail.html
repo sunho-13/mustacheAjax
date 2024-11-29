@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅내용 관리자 조회 {{stompLoginRoomDto.roomName}}</title>
+    <script language="JavaScript" src="/js/jquery-3.7.1.min.js"></script>
+</head>
+
+<body>
+<h1>{{stompLoginRoomDto.roomName}}</h1>
+    <h3>채팅 내용</h3>
+    <ul id="msgUl">
+    {{#stompChatList}}
+    <li>{{msgTime}} : {{writer}} : ({{message}})</li>
+    {{/stompChatList}}
+    </ul>
+</body>
+</html>

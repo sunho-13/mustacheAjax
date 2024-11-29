@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자용 채팅방 리스트</title>
+    <script language="JavaScript" src="/js/jquery-3.7.1.min.js"></script>
+</head>
+
+<script>
+    $(function(){
+
+    });
+
+    $.enterStompRoom = (id) => {
+        document.location.href = `/stomplogin/adminenter/${id}`;
+    }
+</script>
+<body>
+    <ul>
+        <li>채팅방 제목</li>
+        {{#stompRoomList}}
+        <li onclick="$.enterStompRoom('{{id}}');">{{id}} : {{roomName}} ({{count}})</li>
+        {{/stompRoomList}}
+    </ul>
+</body>
+</html>

@@ -31,9 +31,9 @@ public class SearchAjaxDto {
     public void settingValues() {
         this.setOrderByWord( (this.getSortColumn() != null ? this.getSortColumn() : "id")
                 + " " + (this.getSortAscDsc() != null ? this.getSortAscDsc() : "DESC") );
-        // SQL select ¹®ÀåÀÇ ORDER BY ±¸¹®À» ¸¸µé¾î ÁÖ´Â ¿ªÇÒ
+        // SQL select ë¬¸ì¥ì˜ ORDER BY êµ¬ë¬¸ì„ ë§Œë“¤ì–´ ì£¼ëŠ” ì—­í• 
         if ( this.getRowsOnePage() == null ) {
-            // ÇÑ ÆäÀÌÁö´ç º¸¿©ÁÖ´Â ÇàÀÇ °¹¼ö
+            // í•œ í˜ì´ì§€ë‹¹ ë³´ì—¬ì£¼ëŠ” í–‰ì˜ ê°¯ìˆ˜
             this.setRowsOnePage(10);
         }
         if ( this.getPage() == null || this.getPage() <= 0 ) {

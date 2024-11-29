@@ -102,16 +102,18 @@
              , bt.likeQty
              , bt.createDt
              , bt.createId
-             , ct.nickName AS createName
+             , ct.nickname AS createName
              , bt.updateDt
              , bt.updateId
-             , '' AS updateName
+             , ut.nickname AS updateName
              , bt.deleteDt
              , bt.deleteId
-             , '' AS deleteName
+             , dt.nickname AS deleteName
              , bt.deleteFlag
         FROM board_tbl AS bt
-        LEFT JOIN member_tbl AS ct ON bt.createId = ct.id
+        LEFT OUTER JOIN member_tbl AS ct ON bt.createId = ct.id
+        LEFT OUTER JOIN member_tbl AS ut ON bt.updateId = ut.id
+        LEFT OUTER JOIN member_tbl AS dt ON bt.deleteId = dt.id
         WHERE bt.name like CONCAT('%',#{searchName},'%')
           AND bt.deleteFlag = false
         ORDER BY ${orderByWord}

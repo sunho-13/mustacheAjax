@@ -1,5 +1,6 @@
 package com.softagape.mustacheajax.category;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Slf4j
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CategoryServiceImplTest {
@@ -35,7 +37,7 @@ public class CategoryServiceImplTest {
         Throwable exception = assertThrows(Exception.class, () -> {
             categoryService.insert(insert2);
         });
-        System.out.println(exception.toString());
+        log.error("Exception : {}", exception.toString());
 
         CategoryDto insert3 = CategoryDto.builder()
                 .name("AAAAAA").build();

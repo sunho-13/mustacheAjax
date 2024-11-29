@@ -16,7 +16,7 @@ public interface IResponseController {
     default CUDInfoDto makeResponseCheckLogin(Model model) {
         IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
         if (loginUser == null) {
-            throw new LoginAccessException("·Î±×ÀÎ ÇÊ¿ä");
+            throw new LoginAccessException("ë¡œê·¸ì¸ í•„ìš”");
         }
         return new CUDInfoDto(loginUser);
     }
@@ -24,9 +24,9 @@ public interface IResponseController {
     default CUDInfoDto makeResponseCheckLoginAdmin(Model model) {
         IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
         if (loginUser == null) {
-            throw new LoginAccessException("·Î±×ÀÎ ÇÊ¿ä");
+            throw new LoginAccessException("ë¡œê·¸ì¸ í•„ìš”");
         } else if (!loginUser.getRole().equals(MemberRole.ADMIN.toString())) {
-            throw new LoginAccessException("°ü¸®ÀÚ¸¸ °¡´É");
+            throw new LoginAccessException("ê´€ë¦¬ìë§Œ ê°€ëŠ¥");
         }
         return new CUDInfoDto(loginUser);
     }
@@ -34,9 +34,9 @@ public interface IResponseController {
     default CUDInfoDto makeResponseCheckSelfOrAdmin(Model model, IBase checkObject) {
         IMember loginUser = (IMember) model.getAttribute(SecurityConfig.LOGINUSER);
         if (loginUser == null) {
-            throw new LoginAccessException("·Î±×ÀÎ ÇÊ¿ä");
+            throw new LoginAccessException("ë¡œê·¸ì¸ í•„ìš”");
         } else if (!loginUser.getRole().equals(MemberRole.ADMIN.toString()) && !loginUser.getId().equals(checkObject.getCreateId())) {
-            throw new LoginAccessException("°ü¸®ÀÚ¿Í º»ÀÎ¸¸ °¡´É");
+            throw new LoginAccessException("ê´€ë¦¬ìì™€ ë³¸ì¸ë§Œ ê°€ëŠ¥");
         }
         return new CUDInfoDto(loginUser);
     }

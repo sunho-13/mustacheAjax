@@ -28,15 +28,19 @@ CREATE TABLE `member_tbl` (
   `role` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT '0',
   `createDt` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `createId` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `updateDt` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `updateId` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `createId` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `updateDt` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `updateId` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `deleteDt` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `deleteId` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `deleteId` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `deleteFlag` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `member_tbl_uniq_loginId` (`loginId`),
-  UNIQUE KEY `member_tbl_uniq_nickname` (`nickname`)
+  UNIQUE KEY `member_tbl_uniq_nickname` (`nickname`),
+  KEY `member_tbl_id_IDX` (`id`,`deleteFlag`) USING BTREE,
+  KEY `member_tbl_loginId_IDX` (`loginId`,`deleteFlag`) USING BTREE,
+  KEY `member_tbl_nickname_IDX` (`nickname`,`deleteFlag`) USING BTREE,
+  KEY `member_tbl_name_IDX` (`name`,`deleteFlag`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -51,7 +55,10 @@ CREATE TABLE `sbfile_tbl` (
   `tbl` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `boardId` bigint unsigned NOT NULL DEFAULT '0',
   `deleteFlag` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `sbfile_tbl_id_IDX` (`id`,`deleteFlag`) USING BTREE,
+  KEY `sbfile_tbl_tbl_boardId_IDX` (`tbl`,`boardId`) USING BTREE,
+  KEY `sbfile_tbl_tbl_boardId_deleteFlag_IDX` (`tbl`,`boardId`,`deleteFlag`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -72,9 +79,11 @@ CREATE TABLE `board_tbl` (
   KEY `board_tbl_member_tbl_createId` (`createId`),
   KEY `board_tbl_member_tbl_updateId` (`updateId`),
   KEY `board_tbl_member_tbl_deleteId` (`deleteId`),
-  CONSTRAINT `board_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `board_tbl_member_tbl_deleteId` FOREIGN KEY (`deleteId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `board_tbl_member_tbl_updateId` FOREIGN KEY (`updateId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `board_tbl_id_IDX` (`id`,`deleteFlag`) USING BTREE,
+  KEY `board_tbl_name_IDX` (`name`,`deleteFlag`) USING BTREE,
+  CONSTRAINT `board_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `board_tbl_member_tbl_deleteId` FOREIGN KEY (`deleteId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `board_tbl_member_tbl_updateId` FOREIGN KEY (`updateId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -85,7 +94,8 @@ CREATE TABLE `comment_like_tbl` (
   `commentId` bigint unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `comment_like_tbl_member_tbl_createId` (`createId`),
-  CONSTRAINT `comment_like_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `comment_like_tbl_commentTbl_IDX` (`commentTbl`,`createId`,`commentId`) USING BTREE,
+  CONSTRAINT `comment_like_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -109,13 +119,14 @@ CREATE TABLE `sblike_tbl` (
   `boardId` bigint unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `sblike_tbl_member_tbl_createId` (`createId`),
-  CONSTRAINT `sblike_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `sblike_tbl_tbl_IDX` (`tbl`,`createId`,`boardId`) USING BTREE,
+  CONSTRAINT `sblike_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 CREATE TABLE `board_comment_tbl` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `comment` varchar(1000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `comment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `likeQty` int DEFAULT '0',
   `boardId` bigint unsigned NOT NULL,
   `createDt` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -130,9 +141,32 @@ CREATE TABLE `board_comment_tbl` (
   KEY `board_comment_tbl_member_tbl_createId` (`createId`),
   KEY `board_comment_tbl_member_tbl_updateId` (`updateId`),
   KEY `board_comment_tbl_member_tbl_deleteId` (`deleteId`),
-  CONSTRAINT `board_comment_tbl_board_tbl_FK` FOREIGN KEY (`boardId`) REFERENCES `board_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `board_comment_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `board_comment_tbl_member_tbl_deleteId` FOREIGN KEY (`deleteId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `board_comment_tbl_member_tbl_updateId` FOREIGN KEY (`updateId`) REFERENCES `member_tbl` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `board_comment_tbl_boardId_IDX` (`boardId`,`deleteFlag`) USING BTREE,
+  KEY `board_comment_tbl_id_IDX` (`id`,`deleteFlag`) USING BTREE,
+  CONSTRAINT `board_comment_tbl_board_tbl_FK` FOREIGN KEY (`boardId`) REFERENCES `board_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `board_comment_tbl_member_tbl_createId` FOREIGN KEY (`createId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `board_comment_tbl_member_tbl_deleteId` FOREIGN KEY (`deleteId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `board_comment_tbl_member_tbl_updateId` FOREIGN KEY (`updateId`) REFERENCES `member_tbl` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `stompall_room` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `roomName` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `deleteFlag` tinyint(1) DEFAULT '0',
+  `count` int DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `stompall_chat` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `roomId` bigint unsigned NOT NULL,
+  `writer` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `msgTime` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `message` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `stompall_chat_FK_roomId` (`roomId`),
+  CONSTRAINT `stompall_chat_FK_roomId` FOREIGN KEY (`roomId`) REFERENCES `stompall_room` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```

@@ -2,6 +2,8 @@ package com.softagape.mustacheajax.member;
 
 import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.commons.dto.IBase;
+import com.softagape.mustacheajax.commons.exeption.IdNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Slf4j
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MemberServiceImplTest {
@@ -61,7 +64,7 @@ public class MemberServiceImplTest {
         Throwable exception = assertThrows(Exception.class, () -> {
             memberService.insert(cudInfoDto, insert2);
         });
-        System.out.println(exception.toString());
+        log.error("Exception : {}", exception.toString());
 
         insert2.setName("mynameS");
         IMember resultInsert = memberService.insert(cudInfoDto, insert2);
@@ -101,11 +104,14 @@ public class MemberServiceImplTest {
         this.memberService.updateDeleteFlag(cudInfoDto, find2IMember);
         assertThat(find2IMember).isNotNull();
         assertThat(find2IMember.getDeleteFlag()).isEqualTo(true);
-        IMember find3IMember = this.memberService.findById(find2IMember.getId());
-        assertThat(find3IMember).isNull();
+        Throwable exception = assertThrows(IdNotFoundException.class, () -> {
+            memberService.findById(find2IMember.getId());
+        });
+        log.error("IdNotFoundException : {}", exception.toString());
 
-        this.memberService.deleteById(find2IMember.getId());
-        IMember find4IMember = this.memberService.findById(find2IMember.getId());
-        assertThat(find4IMember).isNull();
+        exception = assertThrows(IdNotFoundException.class, () -> {
+            memberService.deleteById(find2IMember.getId());
+        });
+        log.error("IdNotFoundException : {}", exception.toString());
     }
 }

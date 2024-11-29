@@ -44,7 +44,7 @@ public interface IBase {
         if (from.getCreateId() != null) {
             this.setCreateId(from.getCreateId());
         }
-        if (from.getCreateName() != null) {
+        if (from.getCreateName() != null && !from.getCreateName().isEmpty()) {
             this.setCreateName(from.getCreateName());
         }
         if (from.getUpdateDt() != null && !from.getUpdateDt().isEmpty()) {
@@ -62,7 +62,7 @@ public interface IBase {
         if (from.getDeleteId() != null) {
             this.setDeleteId(from.getDeleteId());
         }
-        if (from.getDeleteName() != null && !from.getDeleteDt().isEmpty()) {
+        if (from.getDeleteName() != null && !from.getDeleteName().isEmpty()) {
             this.setDeleteName(from.getDeleteName());
         }
         if (from.getDeleteFlag() != null) {
@@ -76,18 +76,18 @@ public interface IBase {
         return dateFormat.format(today);
     }
 
-    default void setCreateInfo(Long userId) {
+    default void setCreateInfo(Long memberId) {
         this.setCreateDt(this.getSystemDt());
-        this.setCreateId(userId);
+        this.setCreateId(memberId);
     }
 
-    default void setUpdateInfo(Long userId) {
+    default void setUpdateInfo(Long memberId) {
         this.setUpdateDt(this.getSystemDt());
-        this.setUpdateId(userId);
+        this.setUpdateId(memberId);
     }
 
-    default void setDeleteInfo(Long userId) {
+    default void setDeleteInfo(Long memberId) {
         this.setDeleteDt(this.getSystemDt());
-        this.setDeleteId(userId);
+        this.setDeleteId(memberId);
     }
 }

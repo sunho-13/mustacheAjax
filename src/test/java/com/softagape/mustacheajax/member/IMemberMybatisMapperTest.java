@@ -4,6 +4,7 @@ import com.softagape.mustacheajax.commons.dto.CUDInfoDto;
 import com.softagape.mustacheajax.member.MemberDto;
 import com.softagape.mustacheajax.member.IMember;
 import com.softagape.mustacheajax.member.IMemberMybatisMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -51,14 +53,14 @@ public class IMemberMybatisMapperTest {
         Throwable exception = assertThrows(Exception.class, () -> {
             memberMybatisMapper.insert(insert);
         });
-        System.out.println(exception.toString());
+        log.error("Exception : {}", exception.toString());
 
         MemberDto insert2 = MemberDto.builder()
                 .name("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890").build();
         exception = assertThrows(Exception.class, () -> {
             memberMybatisMapper.insert(insert2);
         });
-        System.out.println(exception.toString());
+        log.error("Exception : {}", exception.toString());
 
         MemberDto insert3 = MemberDto.builder()
                 .name("myname")
